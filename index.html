@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M/S. Molla Traders - MFS Report</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; }
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; word-break: break-word; color: #000000; }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+  </style>
+</head>
+<body class="antialiased min-h-screen pb-10">
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="flex items-center justify-center min-h-screen p-4 bg-slate-950">
+    <div class="bg-slate-900 p-6 rounded-2xl shadow-2xl w-full max-w-md border border-slate-800">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-pink-600/20 text-pink-500 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold border border-pink-500/30">
+          <i class="fa-solid fa-building-columns"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-white">M/S. Molla Traders</h2>
+        <p class="text-xs text-slate-400 mt-1">Mobile Financial Services Dashboard</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="off">
+        <div class="mb-6">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">PLEASE ENTER PASSWORD</label>
+          <input type="password" id="password" placeholder="পাসওয়ার্ড দিন" required autocomplete="new-password" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-pink-500 text-sm">
+        </div>
+
+        <button type="submit" id="loginBtn" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 rounded-lg shadow-lg transition text-sm flex items-center justify-center gap-2">
+          <span>লগইন করুন</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </form>
+      <div id="loginError" class="text-red-400 text-xs text-center mt-3 hidden"></div>
+    </div>
+  </div>
+
+  <!-- MAIN APP DASHBOARD -->
+  <div id="appDashboard" class="hidden min-h-screen">
+    
+    <!-- Top Header Navigation Bar -->
+    <header class="bg-slate-900 sticky top-0 z-50 border-b border-slate-800 shadow-lg">
+      <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div>
+          <select id="activeUnitSelect" onchange="switchUnit()" class="bg-slate-800 text-pink-400 font-bold text-sm border border-slate-700 rounded px-2 py-1 focus:outline-none">
+            <option value="molla_1">M/S. Molla Traders - 1</option>
+            <option value="molla_2">M/S. Molla Traders - 2</option>
+          </select>
+          <p class="text-[10px] text-slate-400 mt-0.5">DAILY ACCOUNTS & SALES</p>
+        </div>
+        
+        <button onclick="logout()" class="text-xs bg-red-950 hover:bg-red-900 text-red-300 border border-red-800/50 px-3 py-1.5 rounded-md">
+          <i class="fa-solid fa-right-from-bracket mr-1"></i> বের হন
+        </button>
+      </div>
+
+      <!-- Tab Navigation Buttons -->
+      <div class="bg-slate-950 px-4 pt-2 border-t border-slate-800 flex justify-center gap-4">
+        <button id="tabAccountsBtn" onclick="switchTab('accounts')" class="py-2 px-6 font-semibold text-xs border-b-2 border-pink-500 text-pink-400 transition">
+          <i class="fa-solid fa-calculator mr-1.5"></i> Accounts Report
+        </button>
+        <button id="tabSalesBtn" onclick="switchTab('sales')" class="py-2 px-6 font-semibold text-xs border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+          <i class="fa-solid fa-chart-line mr-1.5"></i> Sales Report
+        </button>
+      </div>
+
+      <!-- Date Selector Bar for Accounts Report -->
+      <div id="dateSelectorBar" class="bg-slate-900 border-t border-slate-800 px-4 py-2">
+        <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
+          <label class="text-xs font-medium text-pink-400 flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-regular fa-calendar-days text-sm"></i> 
+            <span>SELECT DATE:</span>
+          </label>
+          <div class="flex items-center gap-2">
+            <input type="date" id="reportDate" onchange="loadAccountsReport()" class="bg-slate-800 text-white border border-slate-700 px-3 py-1 text-xs rounded focus:outline-none focus:border-pink-500">
+            <button onclick="loadAccountsReport()" class="bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded text-xs font-medium flex items-center gap-1">
+              <i class="fa-solid fa-arrows-rotate text-[10px]"></i> রিফ্রেশ
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Loading Indicator -->
+    <div id="loadingSpinner" class="hidden my-12 text-center">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-pink-500 border-t-transparent"></div>
+      <p class="text-xs text-slate-400 mt-2">Please Wait. Data Loading...</p>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="max-w-4xl mx-auto p-3">
+
+      <!-- ACCOUNTS REPORT TAB -->
+      <div id="accountsReportSection" class="space-y-4">
+        <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-sm">
+          <div id="t1_title" class="bg-sky-100 px-4 py-2.5 text-xs font-bold text-sky-900 border-b border-sky-200"></div>
+          <div class="table-container p-2"><table id="t1_table" class="w-full"></table></div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-sm">
+          <div id="t2_title" class="bg-sky-100 px-4 py-2.5 text-xs font-bold text-sky-900 border-b border-sky-200"></div>
+          <div class="table-container p-2"><table id="t2_table" class="w-full"></table></div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-sm">
+          <div id="t3_title" class="bg-sky-100 px-4 py-2.5 text-xs font-bold text-sky-900 border-b border-sky-200"></div>
+          <div class="table-container p-2"><table id="t3_table" class="w-full"></table></div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-sm">
+          <div id="t4_title" class="bg-sky-100 px-4 py-2.5 text-xs font-bold text-sky-900 border-b border-sky-200"></div>
+          <div class="table-container p-2"><table id="t4_table" class="w-full"></table></div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-sm">
+          <div id="t5_title" class="bg-sky-100 px-4 py-2.5 text-xs font-bold text-sky-900 border-b border-sky-200"></div>
+          <div class="table-container p-2"><table id="t5_table" class="w-full"></table></div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-sm">
+          <div id="t6_title" class="bg-sky-100 px-4 py-2.5 text-xs font-bold text-sky-900 border-b border-sky-200"></div>
+          <div class="table-container p-2"><table id="t6_table" class="w-full"></table></div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-sm">
+          <div class="bg-sky-100 px-4 py-2 flex items-center justify-between border-b border-sky-200">
+            <div id="t7_title" class="text-xs font-bold text-sky-900"></div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] text-slate-600 font-bold">Month:</span>
+              <select id="t7_month_select" onchange="updateMonthData()" class="bg-white text-xs text-slate-800 border border-slate-300 rounded px-2 py-1 focus:outline-none focus:border-pink-500"></select>
+            </div>
+          </div>
+          <div class="table-container p-2"><table id="t7_table" class="w-full"></table></div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-sm">
+          <div class="bg-sky-100 px-4 py-2 flex items-center justify-between border-b border-sky-200">
+            <div id="t8_title" class="text-xs font-bold text-sky-900"></div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] text-slate-600 font-bold">Month:</span>
+              <select id="t8_month_select" onchange="updateMonthData()" class="bg-white text-xs text-slate-800 border border-slate-300 rounded px-2 py-1 focus:outline-none focus:border-pink-500"></select>
+            </div>
+          </div>
+          <div class="table-container p-2"><table id="t8_table" class="w-full"></table></div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-300 overflow-hidden shadow-sm">
+          <div class="bg-sky-100 px-4 py-2 flex items-center justify-between border-b border-sky-200">
+            <div id="t9_title" class="text-xs font-bold text-sky-900"></div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] text-slate-600 font-bold">Month:</span>
+              <select id="t9_month_select" onchange="updateMonthData()" class="bg-white text-xs text-slate-800 border border-slate-300 rounded px-2 py-1 focus:outline-none focus:border-pink-500"></select>
+            </div>
+          </div>
+          <div class="table-container p-2"><table id="t9_table" class="w-full"></table></div>
+        </div>
+      </div>
+
+      <!-- SALES REPORT TAB (Cards set to single column layout) -->
+      <div id="salesReportSection" class="hidden space-y-6">
+        <div id="perfCardsContainer" class="grid grid-cols-1 gap-4"></div>
+
+        <div class="bg-slate-900 rounded-xl border border-slate-800 p-4 shadow-sm">
+          <h3 id="chartHeaderTitle" class="text-sm font-bold text-pink-400 mb-4 text-center">Last 6 Months Transaction Trend</h3>
+          
+          <div class="relative h-64 w-full mb-6">
+            <canvas id="monthlyTrendChart"></canvas>
+          </div>
+
+          <div class="bg-slate-950 rounded-lg border border-slate-800 p-3">
+            <h4 class="text-xs font-bold text-slate-300 mb-2 border-b border-slate-800 pb-1">সংক্ষিপ্ত সারাংশ টেবিল (Summary Table):</h4>
+            <div class="flex justify-between text-xs text-slate-400 font-semibold border-b border-slate-800/60 pb-1.5 mb-2">
+              <span>মাস (Month)</span>
+              <span>ট্রানজেকশন অ্যামাউন্ট</span>
+            </div>
+            <div id="summaryTableBody" class="space-y-1.5 text-xs"></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHxDec8mizGktlYJrccKCKv5EIFGIYuoOcgNQdDJwErmtmcJcMj0u2JhioVxRc1yyb9g/exec";
+
+    let activeTab = "accounts";
+    let activeUnit = "molla_1";
+    let trendChartInstance = null;
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById("reportDate").value = today;
+    });
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const pass = document.getElementById("password").value;
+      const btn = document.getElementById("loginBtn");
+      
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> যাচাই হচ্ছে...`;
+      btn.disabled = true;
+
+      const url = SCRIPT_URL + "?action=verifyPassword&unit=" + activeUnit + "&password=" + encodeURIComponent(pass);
+
+      fetch(url)
+      .then(res => res.json())
+      .then(res => {
+        btn.innerHTML = `<span>লগইন করুন</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+        btn.disabled = false;
+
+        if (res.status === "success") {
+          document.getElementById("loginScreen").classList.add("hidden");
+          document.getElementById("appDashboard").classList.remove("hidden");
+          document.getElementById("loginError").classList.add("hidden");
+          loadAccountsReport();
+        } else {
+          showError(res.message);
+        }
+      })
+      .catch(err => {
+        btn.innerHTML = `<span>লগইন করুন</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+        btn.disabled = false;
+        showError("পাসওয়ার্ড মেলেনি বা শিটের সাথে কানেক্ট হতে সমস্যা হচ্ছে।");
+      });
+    }
+
+    function showError(msg) {
+      const err = document.getElementById("loginError");
+      err.innerText = msg;
+      err.classList.remove("hidden");
+    }
+
+    function logout() {
+      document.getElementById("appDashboard").classList.add("hidden");
+      document.getElementById("loginScreen").classList.remove("hidden");
+      document.getElementById("password").value = "";
+    }
+
+    function switchUnit() {
+      activeUnit = document.getElementById("activeUnitSelect").value;
+      if (activeTab === "accounts") {
+        loadAccountsReport();
+      } else {
+        loadSalesReport();
+      }
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      const accBtn = document.getElementById("tabAccountsBtn");
+      const salesBtn = document.getElementById("tabSalesBtn");
+      const accSec = document.getElementById("accountsReportSection");
+      const salesSec = document.getElementById("salesReportSection");
+      const dateBar = document.getElementById("dateSelectorBar");
+
+      if (tab === "accounts") {
+        accBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-pink-500 text-pink-400 transition";
+        salesBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
+        accSec.classList.remove("hidden");
+        salesSec.classList.add("hidden");
+        dateBar.classList.remove("hidden");
+        loadAccountsReport();
+      } else {
+        salesBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-pink-500 text-pink-400 transition";
+        accBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
+        salesSec.classList.remove("hidden");
+        accSec.classList.add("hidden");
+        dateBar.classList.add("hidden");
+        loadSalesReport();
+      }
+    }
+
+    function loadAccountsReport(monthParams = null) {
+      document.getElementById("loadingSpinner").classList.remove("hidden");
+      
+      let url = SCRIPT_URL + "?action=fetchAccountsReport&unit=" + activeUnit + "&date=" + document.getElementById("reportDate").value;
+      if (monthParams && monthParams.selectedMonth) {
+        url += "&selectedMonth=true&table7Month=" + encodeURIComponent(monthParams.table7Month) +
+               "&table8Month=" + encodeURIComponent(monthParams.table8Month) +
+               "&table9Month=" + encodeURIComponent(monthParams.table9Month);
+      }
+
+      fetch(url)
+      .then(res => res.json())
+      .then(res => {
+        document.getElementById("loadingSpinner").classList.add("hidden");
+        if (res.status === "success") {
+          renderAccountsReport(res.data);
+        } else {
+          alert("Error: " + res.message);
+        }
+      })
+      .catch(err => {
+        document.getElementById("loadingSpinner").classList.add("hidden");
+        console.error(err);
+      });
+    }
+
+    function renderAccountsReport(data) {
+      populateDropdown("t7_month_select", data.monthOptions, data.t7Month);
+      populateDropdown("t8_month_select", data.monthOptions, data.t8Month);
+      populateDropdown("t9_month_select", data.monthOptions, data.t9Month);
+
+      renderSingleTable("t1", data.t1);
+      renderSingleTable("t2", data.t2);
+      renderSingleTable("t3", data.t3);
+      renderSingleTable("t4", data.t4);
+      renderSingleTable("t5", data.t5);
+      renderSingleTable("t6", data.t6);
+      renderSingleTable("t7", data.t7);
+      renderSingleTable("t8", data.t8);
+      renderSingleTable("t9", data.t9);
+    }
+
+    function populateDropdown(selectId, options, selectedVal) {
+      const select = document.getElementById(selectId);
+      select.innerHTML = "";
+      options.forEach(opt => {
+        const option = document.createElement("option");
+        option.value = opt;
+        option.innerText = opt;
+        if (String(opt).trim() === String(selectedVal).trim()) {
+          option.selected = true;
+        }
+        select.appendChild(option);
+      });
+    }
+
+    function updateMonthData() {
+      const m7 = document.getElementById("t7_month_select").value;
+      const m8 = document.getElementById("t8_month_select").value;
+      const m9 = document.getElementById("t9_month_select").value;
+
+      loadAccountsReport({
+        selectedMonth: true,
+        table7Month: m7,
+        table8Month: m8,
+        table9Month: m9
+      });
+    }
+
+    function renderSingleTable(prefix, tableObj) {
+      document.getElementById(prefix + "_title").innerText = tableObj.title || "";
+      const table = document.getElementById(prefix + "_table");
+      table.innerHTML = "";
+
+      if (!tableObj.grid || tableObj.grid.length === 0) return;
+
+      tableObj.grid.forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+
+        row.forEach((cellObj) => {
+          const cell = (rowIndex === 0) ? document.createElement("th") : document.createElement("td");
+          cell.innerText = cellObj.text;
+
+          if (cellObj.bg && cellObj.bg !== "#ffffff") {
+            cell.style.backgroundColor = cellObj.bg;
+          } else {
+            cell.style.backgroundColor = "#ffffff";
+          }
+
+          if (cellObj.color && cellObj.color !== "#000000") {
+            cell.style.color = cellObj.color;
+          } else {
+            cell.style.color = "#000000";
+          }
+
+          if (cellObj.bold) {
+            cell.style.fontWeight = "bold";
+          }
+
+          const cleanNum = String(cellObj.text).replace(/,/g, '');
+          if (!isNaN(cleanNum) && String(cellObj.text).trim() !== "") {
+            cell.classList.add("text-right");
+          }
+
+          tr.appendChild(cell);
+        });
+        table.appendChild(tr);
+      });
+    }
+
+    function loadSalesReport() {
+      document.getElementById("loadingSpinner").classList.remove("hidden");
+      const url = SCRIPT_URL + "?action=fetchSalesReport&unit=" + activeUnit;
+
+      fetch(url)
+      .then(res => res.json())
+      .then(res => {
+        document.getElementById("loadingSpinner").classList.add("hidden");
+        if (res.status === "success") {
+          renderSalesReport(res.data);
+        }
+      })
+      .catch(err => {
+        document.getElementById("loadingSpinner").classList.add("hidden");
+        console.error(err);
+      });
+    }
+
+    function renderSalesReport(data) {
+      const container = document.getElementById("perfCardsContainer");
+      container.innerHTML = "";
+
+      data.perfCards.forEach((card, idx) => {
+        const target = Math.round(parseFloat(String(card.target).replace(/,/g, '')) || 0);
+        const achieved = Math.round(parseFloat(String(card.achieved).replace(/,/g, '')) || 0);
+        const gap = Math.max(0, target - achieved);
+        const percent = target > 0 ? Math.min(100, Math.round((achieved / target) * 100)) : 0;
+
+        const cardHtml = `
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+            <h4 class="text-xs font-bold text-pink-400 mb-3 text-center border-b border-slate-800 pb-2">${card.title}</h4>
+            
+            <div class="flex items-center justify-center my-3 relative">
+              <div class="w-32 h-32">
+                <canvas id="donutChart_${idx}"></canvas>
+              </div>
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span class="text-lg font-extrabold text-white">${percent}%</span>
+                <span class="text-[9px] text-emerald-400 font-semibold">Achieved</span>
+              </div>
+            </div>
+
+            <div class="bg-slate-950 rounded-lg p-2.5 space-y-1.5 text-xs mt-3 border border-slate-800/80">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Target Amount:</span>
+                <span class="font-bold text-white">৳ ${formatMoney(target)}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Achievement Amount:</span>
+                <span class="font-bold text-emerald-400">৳ ${formatMoney(achieved)}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Gap Amount:</span>
+                <span class="font-bold text-red-400">৳ ${formatMoney(gap)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        container.innerHTML += cardHtml;
+      });
+
+      setTimeout(() => {
+        data.perfCards.forEach((card, idx) => {
+          const target = Math.round(parseFloat(String(card.target).replace(/,/g, '')) || 0);
+          const achieved = Math.round(parseFloat(String(card.achieved).replace(/,/g, '')) || 0);
+          const gap = Math.max(0, target - achieved);
+
+          const ctx = document.getElementById(`donutChart_${idx}`).getContext('2d');
+          new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: ['Achieved', 'Gap'],
+              datasets: [{
+                data: [achieved, gap],
+                backgroundColor: ['#10b981', '#334155'],
+                borderWidth: 0
+              }]
+            },
+            options: {
+              cutout: '75%',
+              responsive: true,
+              plugins: { legend: { display: false } }
+            }
+          });
+        });
+      }, 50);
+
+      document.getElementById("chartHeaderTitle").innerText = data.chartTitle || "Last 6 Months Transaction Trend";
+      
+      const months = data.monthlyTrend.map(item => item.month);
+      const txns = data.monthlyTrend.map(item => Math.round(parseFloat(String(item.txn).replace(/,/g, '')) || 0));
+      const colors = ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#6366f1'];
+
+      if (trendChartInstance) trendChartInstance.destroy();
+
+      const ctxTrend = document.getElementById('monthlyTrendChart').getContext('2d');
+      trendChartInstance = new Chart(ctxTrend, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [{
+            data: txns,
+            backgroundColor: colors,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+            y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+          }
+        }
+      });
+
+      const summaryBody = document.getElementById("summaryTableBody");
+      summaryBody.innerHTML = "";
+      data.monthlyTrend.forEach(item => {
+        const val = Math.round(parseFloat(String(item.txn).replace(/,/g, '')) || 0);
+        summaryBody.innerHTML += `
+          <div class="flex justify-between items-center py-1 border-b border-slate-900">
+            <span class="text-white font-medium">${item.month}</span>
+            <span class="text-pink-400 font-bold">৳ ${formatMoney(val)}</span>
+          </div>
+        `;
+      });
+    }
+
+    function formatMoney(num) {
+      return Math.round(num).toLocaleString('en-IN');
+    }
+  </script>
+</body>
+</html>
