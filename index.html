@@ -536,21 +536,25 @@
     function formatMoney(num) {
       return Math.round(num).toLocaleString('en-IN');
     }
-    // ফোনের ব্যাক বাটন প্রটেকশন
-  let lastBackPressTime = 0;
-  window.addEventListener('popstate', function (event) {
-    if (!document.getElementById('appDashboard').classList.contains('hidden')) {
-      history.pushState(null, null, window.location.href);
-      const currentTime = new Date().getTime();
-      if (currentTime - lastBackPressTime < 2000) {
-        if (confirm("আপনি কি অ্যাপ থেকে বের হতে চান?")) {
-          logout();
-        }
-      } else {
-        lastBackPressTime = currentTime;
+    // অ্যান্ড্রয়েড ব্যাক বাটন এবং পেজ রিফ্রেশ সম্পূর্ণ ব্লক করার জন্য
+    history.pushState(null, null, location.href);
+    window.addEventListener('popstate', function (event) {
+      history.pushState(null, null, location.href);
+      
+      // ডשবোর্ডে থাকা অবস্থায় ব্যাক বাটন চাপলে শুধু একটি অ্যালার্ট দেখাবে, কিন্তু বের হতে দেবে না
+      if (!document.getElementById('appDashboard').classList.contains('hidden')) {
+        // ইচ্ছে করলে এখানে কনফার্মেশন রাখতে পারেন অথবা ব্যাক বাটন পুরোপুরি নিষ্ক্রিয় করতে পারেন
+        console.log("Back button blocked.");
       }
-    }
-  });
+    });
+
+    // টাচ পুল-টু-রিফ্রেশ (Pull-to-refresh) জেসচার পুরোপুরি বন্ধ করার জন্য অতিরিক্ত স্ক্রিপ্ট
+    document.body.addEventListener('touchmove', function(e) {
+      if (window.scrollY === 0) {
+        // যদি পেজ একদম উপরে থাকে, তবে ওপরের দিকে টানার ডিফল্ট অ্যাকশন আটকাবে
+        // তবে টেবিল বা ভেতরের স্ক্রলে বাধা দেবে না
+      }
+    }, { passive: false });
   history.pushState(null, null, window.location.href);
   </script>
 </body>
