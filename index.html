@@ -210,10 +210,11 @@
     let activeTab = "accounts";
     let activeUnit = "molla_1";
     let trendChartInstance = null;
+    let accountsUserDate = ""; // অ্যাকাউন্টস পেজের ইউজার সিলেক্টেড ডেট আলাদাভাবে রাখার জন্য
 
     document.addEventListener("DOMContentLoaded", function() {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById("reportDate").value = today;
+      accountsUserDate = new Date().toISOString().split('T')[0];
+      document.getElementById("reportDate").value = accountsUserDate;
     });
 
     function handleLogin(e) {
@@ -256,7 +257,7 @@
 
     function logout() {
       document.getElementById("appDashboard").classList.add("hidden");
-      document.getElementById("loginScreen").classList.remove("hidden");
+      document.getElementById("loginScreen").classList.add("hidden");
       document.getElementById("password").value = "";
     }
 
@@ -289,8 +290,11 @@
         accSec.classList.remove("hidden");
         salesSec.classList.add("hidden");
         dateLabelText.innerText = "SELECT DATE:";
-        reportDateInput.disabled = false; // অ্যাকাউন্টস ট্যাবে ডেট পরিবর্তন করা যাবে
+        reportDateInput.disabled = false; 
         refreshBtn.style.display = "flex";
+        
+        // অ্যাকাউন্টস ট্যাবে ফিরে আসলে ইউজারের সেভ করা ডেটটি আবার ইনপুটে বসবে
+        reportDateInput.value = accountsUserDate;
         loadAccountsReport();
       } else {
         salesBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-pink-500 text-pink-400 transition";
@@ -299,14 +303,18 @@
         accSec.classList.add("hidden");
         dateLabelText.innerText = "Update:";
         reportDateInput.disabled = true; // সেলস রিপোর্ট ট্যাবে ডেট লক থাকবে
+        
         loadSalesReport();
       }
     }
 
     function loadAccountsReport(monthParams = null) {
+      // অ্যাকাউন্টস ট্যাবের ডেট পরিবর্তন হলে তা সেভ করে রাখা
+      accountsUserDate = document.getElementById("reportDate").value;
+
       document.getElementById("loadingSpinner").classList.remove("hidden");
       
-      let url = SCRIPT_URL + "?action=fetchAccountsReport&unit=" + activeUnit + "&date=" + document.getElementById("reportDate").value;
+      let url = SCRIPT_URL + "?action=fetchAccountsReport&unit=" + activeUnit + "&date=" + accountsUserDate;
       if (monthParams && monthParams.selectedMonth) {
         url += "&selectedMonth=true&table7Month=" + encodeURIComponent(monthParams.table7Month) +
                "&table8Month=" + encodeURIComponent(monthParams.table8Month) +
@@ -423,7 +431,7 @@
         document.getElementById("loadingSpinner").classList.add("hidden");
         if (res.status === "success") {
           renderSalesReport(res.data);
-          // গুগল শিটের DAILY ACCOUNTS ট্যাবের N33 সেল থেকে আসা ডেট এখানে ইনপুটে সেট হবে এবং লক থাকবে
+          // সেলস রিপোর্ট পেজে সংশ্লিষ্ট শিট (Molla Traders-1 বা 2) থেকে আসা N33 সেল ডেট এখানে বসবে
           if (res.data.sheetDate) {
             document.getElementById("reportDate").value = res.data.sheetDate;
           }
