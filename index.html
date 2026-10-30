@@ -95,8 +95,8 @@
             <span id="dateLabelText">SELECT DATE:</span>
           </label>
           <div class="flex items-center gap-2">
-            <input type="date" id="reportDate" onchange="onDateInputChange()" class="bg-slate-800 text-white border border-slate-700 px-3 py-1 text-xs rounded focus:outline-none focus:border-pink-500">
-            <button onclick="refreshActiveTab()" class="bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded text-xs font-medium flex items-center gap-1">
+            <input type="date" id="reportDate" onchange="loadAccountsReport()" class="bg-slate-800 text-white border border-slate-700 px-3 py-1 text-xs rounded focus:outline-none focus:border-pink-500">
+            <button id="refreshBtn" onclick="refreshActiveTab()" class="bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded text-xs font-medium flex items-center gap-1">
               <i class="fa-solid fa-arrows-rotate text-[10px]"></i> রিফ্রেশ
             </button>
           </div>
@@ -273,14 +273,6 @@
       }
     }
 
-    function onDateInputChange() {
-      if (activeTab === "accounts") {
-        loadAccountsReport();
-      } else {
-        loadSalesReport();
-      }
-    }
-
     function switchTab(tab) {
       activeTab = tab;
       const accBtn = document.getElementById("tabAccountsBtn");
@@ -288,6 +280,8 @@
       const accSec = document.getElementById("accountsReportSection");
       const salesSec = document.getElementById("salesReportSection");
       const dateLabelText = document.getElementById("dateLabelText");
+      const reportDateInput = document.getElementById("reportDate");
+      const refreshBtn = document.getElementById("refreshBtn");
 
       if (tab === "accounts") {
         accBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-pink-500 text-pink-400 transition";
@@ -295,13 +289,16 @@
         accSec.classList.remove("hidden");
         salesSec.classList.add("hidden");
         dateLabelText.innerText = "SELECT DATE:";
+        reportDateInput.disabled = false; // অ্যাকাউন্টস ট্যাবে ডেট পরিবর্তন করা যাবে
+        refreshBtn.style.display = "flex";
         loadAccountsReport();
       } else {
         salesBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-pink-500 text-pink-400 transition";
         accBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
         salesSec.classList.remove("hidden");
         accSec.classList.add("hidden");
-        dateLabelText.innerText = "UPDATE:";
+        dateLabelText.innerText = "Update:";
+        reportDateInput.disabled = true; // সেলস রিপোর্ট ট্যাবে ডেট লক থাকবে
         loadSalesReport();
       }
     }
@@ -426,6 +423,7 @@
         document.getElementById("loadingSpinner").classList.add("hidden");
         if (res.status === "success") {
           renderSalesReport(res.data);
+          // গুগল শিটের DAILY ACCOUNTS ট্যাবের N33 সেল থেকে আসা ডেট এখানে ইনপুটে সেট হবে এবং লক থাকবে
           if (res.data.sheetDate) {
             document.getElementById("reportDate").value = res.data.sheetDate;
           }
@@ -447,8 +445,8 @@
         const gap = Math.max(0, target - achieved);
         const percent = target > 0 ? Math.min(100, Math.round((achieved / target) * 100)) : 0;
 
-        // প্রথম দুটি কার্ড দোকানের সংখ্যা (শর্ত অনুযায়ী টাকা বা সিম্বল ছাড়া দেখাবে)
-        const isShopCountCard = (idx === 0 || idx === 1);
+        // শেষের দুটি পারফরম্যান্স কার্ডের ক্ষেত্রে টাকার সিম্বল ৳ ও ফরম্যাটিং বাদ দিয়ে শুধু সংখ্যা দেখাবে
+        const isShopCountCard = (idx >= data.perfCards.length - 2);
 
         const targetDisplay = isShopCountCard ? target.toLocaleString('en-IN') : `৳ ${formatMoney(target)}`;
         const achievedDisplay = isShopCountCard ? achieved.toLocaleString('en-IN') : `৳ ${formatMoney(achieved)}`;
