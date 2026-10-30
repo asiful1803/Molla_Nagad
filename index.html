@@ -29,7 +29,8 @@
   .text-right { text-align: right; }
   .text-center { text-align: center; }
 </style>
-  <body class="antialiased min-h-screen pb-10">
+</head>
+<body class="antialiased min-h-screen pb-10">
 
   <!-- LOGIN SCREEN -->
   <div id="loginScreen" class="flex items-center justify-center min-h-screen p-4 bg-slate-950">
@@ -86,16 +87,16 @@
         </button>
       </div>
 
-      <!-- Date Selector Bar for Accounts Report -->
+      <!-- Date Selector Bar for Accounts Report & Sales Report -->
       <div id="dateSelectorBar" class="bg-slate-900 border-t border-slate-800 px-4 py-2">
         <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
           <label class="text-xs font-medium text-pink-400 flex items-center gap-1.5 cursor-pointer">
             <i class="fa-regular fa-calendar-days text-sm"></i> 
-            <span>SELECT DATE:</span>
+            <span id="dateLabelText">SELECT DATE:</span>
           </label>
           <div class="flex items-center gap-2">
-            <input type="date" id="reportDate" onchange="loadAccountsReport()" class="bg-slate-800 text-white border border-slate-700 px-3 py-1 text-xs rounded focus:outline-none focus:border-pink-500">
-            <button onclick="loadAccountsReport()" class="bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded text-xs font-medium flex items-center gap-1">
+            <input type="date" id="reportDate" onchange="onDateInputChange()" class="bg-slate-800 text-white border border-slate-700 px-3 py-1 text-xs rounded focus:outline-none focus:border-pink-500">
+            <button onclick="refreshActiveTab()" class="bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded text-xs font-medium flex items-center gap-1">
               <i class="fa-solid fa-arrows-rotate text-[10px]"></i> রিফ্রেশ
             </button>
           </div>
@@ -261,6 +262,18 @@
 
     function switchUnit() {
       activeUnit = document.getElementById("activeUnitSelect").value;
+      refreshActiveTab();
+    }
+
+    function refreshActiveTab() {
+      if (activeTab === "accounts") {
+        loadAccountsReport();
+      } else {
+        loadSalesReport();
+      }
+    }
+
+    function onDateInputChange() {
       if (activeTab === "accounts") {
         loadAccountsReport();
       } else {
@@ -274,21 +287,21 @@
       const salesBtn = document.getElementById("tabSalesBtn");
       const accSec = document.getElementById("accountsReportSection");
       const salesSec = document.getElementById("salesReportSection");
-      const dateBar = document.getElementById("dateSelectorBar");
+      const dateLabelText = document.getElementById("dateLabelText");
 
       if (tab === "accounts") {
         accBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-pink-500 text-pink-400 transition";
         salesBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
         accSec.classList.remove("hidden");
         salesSec.classList.add("hidden");
-        dateBar.classList.remove("hidden");
+        dateLabelText.innerText = "SELECT DATE:";
         loadAccountsReport();
       } else {
         salesBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-pink-500 text-pink-400 transition";
         accBtn.className = "py-2 px-6 font-semibold text-xs border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
         salesSec.classList.remove("hidden");
         accSec.classList.add("hidden");
-        dateBar.classList.add("hidden");
+        dateLabelText.innerText = "UPDATE:";
         loadSalesReport();
       }
     }
@@ -413,6 +426,9 @@
         document.getElementById("loadingSpinner").classList.add("hidden");
         if (res.status === "success") {
           renderSalesReport(res.data);
+          if (res.data.sheetDate) {
+            document.getElementById("reportDate").value = res.data.sheetDate;
+          }
         }
       })
       .catch(err => {
@@ -431,6 +447,13 @@
         const gap = Math.max(0, target - achieved);
         const percent = target > 0 ? Math.min(100, Math.round((achieved / target) * 100)) : 0;
 
+        // প্রথম দুটি কার্ড দোকানের সংখ্যা (শর্ত অনুযায়ী টাকা বা সিম্বল ছাড়া দেখাবে)
+        const isShopCountCard = (idx === 0 || idx === 1);
+
+        const targetDisplay = isShopCountCard ? target.toLocaleString('en-IN') : `৳ ${formatMoney(target)}`;
+        const achievedDisplay = isShopCountCard ? achieved.toLocaleString('en-IN') : `৳ ${formatMoney(achieved)}`;
+        const gapDisplay = isShopCountCard ? gap.toLocaleString('en-IN') : `৳ ${formatMoney(gap)}`;
+
         const cardHtml = `
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
             <h4 class="text-xs font-bold text-pink-400 mb-3 text-center border-b border-slate-800 pb-2">${card.title}</h4>
@@ -447,16 +470,16 @@
 
             <div class="bg-slate-950 rounded-lg p-2.5 space-y-1.5 text-xs mt-3 border border-slate-800/80">
               <div class="flex justify-between items-center">
-                <span class="text-slate-400">Target Amount:</span>
-                <span class="font-bold text-white">৳ ${formatMoney(target)}</span>
+                <span class="text-slate-400">Target:</span>
+                <span class="font-bold text-white">${targetDisplay}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-slate-400">Achievement Amount:</span>
-                <span class="font-bold text-emerald-400">৳ ${formatMoney(achieved)}</span>
+                <span class="text-slate-400">Achievement:</span>
+                <span class="font-bold text-emerald-400">${achievedDisplay}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-slate-400">Gap Amount:</span>
-                <span class="font-bold text-red-400">৳ ${formatMoney(gap)}</span>
+                <span class="text-slate-400">Gap:</span>
+                <span class="font-bold text-red-400">${gapDisplay}</span>
               </div>
             </div>
           </div>
@@ -536,26 +559,21 @@
     function formatMoney(num) {
       return Math.round(num).toLocaleString('en-IN');
     }
+
     // অ্যান্ড্রয়েড ব্যাক বাটন এবং পেজ রিফ্রেশ সম্পূর্ণ ব্লক করার জন্য
     history.pushState(null, null, location.href);
     window.addEventListener('popstate', function (event) {
       history.pushState(null, null, location.href);
       
-      // ডשবোর্ডে থাকা অবস্থায় ব্যাক বাটন চাপলে শুধু একটি অ্যালার্ট দেখাবে, কিন্তু বের হতে দেবে না
       if (!document.getElementById('appDashboard').classList.contains('hidden')) {
-        // ইচ্ছে করলে এখানে কনফার্মেশন রাখতে পারেন অথবা ব্যাক বাটন পুরোপুরি নিষ্ক্রিয় করতে পারেন
         console.log("Back button blocked.");
       }
     });
 
-    // টাচ পুল-টু-রিফ্রেশ (Pull-to-refresh) জেসচার পুরোপুরি বন্ধ করার জন্য অতিরিক্ত স্ক্রিপ্ট
     document.body.addEventListener('touchmove', function(e) {
-      if (window.scrollY === 0) {
-        // যদি পেজ একদম উপরে থাকে, তবে ওপরের দিকে টানার ডিফল্ট অ্যাকশন আটকাবে
-        // তবে টেবিল বা ভেতরের স্ক্রলে বাধা দেবে না
-      }
+      if (window.scrollY === 0) {}
     }, { passive: false });
-  history.pushState(null, null, window.location.href);
+    history.pushState(null, null, window.location.href);
   </script>
 </body>
 </html>
