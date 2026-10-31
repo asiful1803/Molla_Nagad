@@ -24,14 +24,33 @@
     color: #f8fafc; 
   }
   .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { border-collapse: collapse; width: 100%; font-size: 12px; } /* ফন্ট সাইজ সামান্য ছোট করা হলো */
+  table { border-collapse: collapse; width: 100%; font-size: 12px; table-layout: fixed; }
+  
   th, td { 
     border: 1px solid #cbd5e1; 
-    padding: 5px 6px; /* প্যাডিং একটু কমানো হলো যাতে জায়গা বেশি পাওয়া যায় */
-    text-align: left; 
-    white-space: nowrap; /* সংখ্যা বা লেখা যেন কোনোভাবেই ভেঙে নিচে না নামে */
+    padding: 5px 6px; 
     color: #000000; 
+    overflow: hidden;
+    word-break: break-word;
   }
+
+  /* টেবিলের প্রথম কলাম (Date) এর সাইজ ছোট রাখা */
+  table th:nth-child(1), table td:nth-child(1) {
+    width: 22%;
+  }
+
+  /* মাঝখানের Particular কলামটি সবচেয়ে সরু বা কম জায়গা নেওয়ার জন্য */
+  table th:nth-child(2), table td:nth-child(2) {
+    width: 50%;
+    white-space: normal;
+  }
+
+  /* শেষের অ্যামাউন্ট কলামটি ঠিকঠাক রাখার জন্য */
+  table th:nth-child(3), table td:nth-child(3) {
+    width: 28%;
+    white-space: nowrap !important;
+  }
+
   .text-right { text-align: right; }
   .text-center { text-align: center; }
 </style>
