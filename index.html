@@ -10,7 +10,7 @@
   <!-- Chart.js Library -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
+ <style>
   html, body {
     overscroll-behavior-y: none;
     overscroll-behavior-x: none;
@@ -24,8 +24,14 @@
     color: #f8fafc; 
   }
   .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; word-break: break-word; color: #000000; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; } /* ফন্ট সাইজ সামান্য ছোট করা হলো */
+  th, td { 
+    border: 1px solid #cbd5e1; 
+    padding: 5px 6px; /* প্যাডিং একটু কমানো হলো যাতে জায়গা বেশি পাওয়া যায় */
+    text-align: left; 
+    white-space: nowrap; /* সংখ্যা বা লেখা যেন কোনোভাবেই ভেঙে নিচে না নামে */
+    color: #000000; 
+  }
   .text-right { text-align: right; }
   .text-center { text-align: center; }
 </style>
