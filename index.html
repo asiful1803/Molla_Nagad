@@ -24,30 +24,46 @@
     color: #f8fafc; 
   }
   .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { border-collapse: collapse; width: 100%; font-size: 12px; table-layout: fixed; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
   
   th, td { 
     border: 1px solid #cbd5e1; 
-    padding: 5px 6px; 
+    padding: 6px 8px; 
+    text-align: left; 
     color: #000000; 
-    overflow: hidden;
-    word-break: break-word;
   }
 
-  /* টেবিলের প্রথম কলাম (Date) এর সাইজ ছোট রাখা */
-  table th:nth-child(1), table td:nth-child(1) {
+  /* শুধু যে টেবিলগুলোতে ৩টি কলাম আছে (যেমন Expense Details), সেগুলোর ডিসপ্লে অ্যাডজাস্টমেন্ট */
+  table tr th:nth-last-child(3):first-child ~ th:last-child,
+  table tr td:nth-last-child(3):first-child ~ td:last-child {
+    /* এটি শুধু ৩ কলাম বিশিষ্ট টেবিলকে টার্গেট করবে */
+  }
+
+  /* Expense Details বা ৩ কলামের টেবিলের ক্ষেত্রে কলামের সাইজ সুনির্দিষ্ট করা */
+  #t5_table th:nth-child(1), #t5_table td:nth-child(1),
+  #t6_table th:nth-child(1), #t6_table td:nth-child(1) {
     width: 22%;
   }
-
-  /* মাঝখানের Particular কলামটি সবচেয়ে সরু বা কম জায়গা নেওয়ার জন্য */
-  table th:nth-child(2), table td:nth-child(2) {
+  #t5_table, #t6_table {
+    table-layout: fixed;
+  }
+  #t5_table th:nth-child(2), #t5_table td:nth-child(2),
+  #t6_table th:nth-child(2), #t6_table td:nth-child(2) {
     width: 50%;
     white-space: normal;
   }
-
-  /* শেষের অ্যামাউন্ট কলামটি ঠিকঠাক রাখার জন্য */
-  table th:nth-child(3), table td:nth-child(3) {
+  #t5_table th:nth-child(3), #t5_table td:nth-child(3),
+  #t6_table th:nth-child(3), #t6_table td:nth-child(3) {
     width: 28%;
+    white-space: nowrap !important;
+  }
+
+  /* সাধারণ টেবিলের টেক্সট এবং সংখ্যার ফরম্যাট */
+  td:not(.text-right), th:not(.text-right) {
+    white-space: normal; 
+  }
+
+  td.text-right, th.text-right {
     white-space: nowrap !important;
   }
 
