@@ -10,7 +10,7 @@
   <!-- Chart.js Library -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
- <style>
+<style>
   html, body {
     overscroll-behavior-y: none;
     overscroll-behavior-x: none;
@@ -32,36 +32,24 @@
     color: #000000; 
   }
 
-  /* Investment Statement (t3_table) এর ক্ষেত্রে Object কলাম বড় এবং Amount কলাম ছোট করা হলো */
-  #t3_table {
-    table-layout: fixed;
-  }
-  #t3_table th:nth-child(1), #t3_table td:nth-child(1) {
-    width: 62%; /* Object কলামের জায়গা বাড়িয়ে বড় করা হলো */
-    white-space: normal;
-  }
-  #t3_table th:nth-child(2), #t3_table td:nth-child(2) {
-    width: 38%; /* Amount কলামের জায়গা সে অনুযায়ী সেট করা হলো */
-    white-space: nowrap !important;
-  }
-
-  /* Expense Details বা ৩ কলামের টেবিলের ক্ষেত্রে (t5 এবং t6) */
+  /* ১. Investment Statement (t5) এবং Daily Due Statement (t6) - ২ কলামের টেবিলের জন্য সাইজ অ্যাডজাস্টমেন্ট */
   #t5_table, #t6_table {
     table-layout: fixed;
   }
   #t5_table th:nth-child(1), #t5_table td:nth-child(1),
   #t6_table th:nth-child(1), #t6_table td:nth-child(1) {
-    width: 22%;
+    width: 65%; /* অবজেক্টের ঘর বড় রাখা হলো */
+    white-space: normal;
   }
   #t5_table th:nth-child(2), #t5_table td:nth-child(2),
   #t6_table th:nth-child(2), #t6_table td:nth-child(2) {
-    width: 50%;
-    white-space: normal;
-  }
-  #t5_table th:nth-child(3), #t5_table td:nth-child(3),
-  #t6_table th:nth-child(3), #t6_table td:nth-child(3) {
-    width: 28%;
+    width: 35%; /* অ্যামাউন্টের ঘর এবং সংখ্যা এক লাইনে থাকবে */
     white-space: nowrap !important;
+  }
+
+  /* ২. Daily Bank Position (t3) ৫-কলামের টেবিলটি তার নিজস্ব অটো লেআউটে থাকবে, কোনো ফিক্সড উইডথ দেওয়া হবে না */
+  #t3_table {
+    table-layout: auto !important;
   }
 
   /* সাধারণ টেবিলের টেক্সট এবং সংখ্যার ফরম্যাট */
@@ -75,7 +63,7 @@
 
   .text-right { text-align: right; }
   .text-center { text-align: center; }
-</style>
+</style> 
 </head>
 <body class="antialiased min-h-screen pb-10">
 
